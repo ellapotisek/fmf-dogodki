@@ -55,8 +55,19 @@ def get_list_htmls():
 			
 			url = tpl_url + f'?page={i}'
 			fname = tpl_fname + f'{i}'
-	
+
 	f = open('paths.txt', "w")
 	for path in dissertation_urls:
 		f.write(path + '\n')
-	f.close()	
+	f.close()
+
+id_pattern = (
+  r'/(?P<id>[0-9]*?)/'
+)
+
+def get_events():
+	with open('paths.txt') as f:
+		for path in f:
+			match = re.search(id_pattern, path)
+			fname = match.groupdict()["id"]
+			get_html(f'https://www.fmf.uni-lj.si{path}', fname)
