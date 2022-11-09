@@ -4,6 +4,7 @@ import sys
 import os
 import time
 import html
+import csv
 
 sources = [
 	"158/zagovori-diplom-fizika",
@@ -104,14 +105,14 @@ def parse_html(fname):
 			h = f.read()
 		match = re.search(event_pattern, h)
 		data = match.groupdict()
-		committee = re.findall(event_pattern2, h)
-		committee = list(map(html.unescape, committee))
 		data["id"] = fname
 		data_list.append(data)
-		committees.append(committee)
-		print(data)
-		print(committee)
-		print(len(data_list), len(commitees))
+		committee = re.findall(event_pattern2, h)
+		committee = list(map(html.unescape, committee))
+		a = dict()
+		a["committee"] = committee
+		a["id"] = fname
+		committees.append(a)
 	except:
 		pass
 	
@@ -126,4 +127,11 @@ def get_data():
 	with open('data.txt', 'w') as f:
 		for item in data_list:
 			f.write(item + '\n')
+
+def make_csv(dicts, keys, fname):
+	with open(fname, 'w', encoding='utf-8') as f:
+		writer = csv.DictWriter(f, fieldnames=keys)
+		writer.writeheader()
+		writer.writerows(dicts)
+	
 
