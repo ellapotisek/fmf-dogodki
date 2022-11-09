@@ -3,6 +3,7 @@ import requests
 import sys
 import os
 import time
+import html
 
 sources = [
 	"158/zagovori-diplom-fizika",
@@ -59,15 +60,70 @@ def get_list_htmls():
 	f = open('paths.txt', "w")
 	for path in dissertation_urls:
 		f.write(path + '\n')
-	f.close()
+	f.close() 
 
 id_pattern = (
   r'/(?P<id>[0-9]*?)/'
 )
 
 def get_events():
+	id_list = []
 	with open('paths.txt') as f:
 		for path in f:
+			path = path[:-1]
 			match = re.search(id_pattern, path)
 			fname = match.groupdict()["id"]
 			get_html(f'https://www.fmf.uni-lj.si{path}', fname)
+			id_list.append(fname)
+			time.sleep(0.1)
+	with open('fnames.txt', 'w') as f:
+		for fname in id_list:
+			f.write(fname + '\n')
+
+event_pattern = (
+	r'<h1>(?P<sth>[^:]*?):\s?'
+	#r'(?P<name>.*?)[,.]\s?'
+	r'(?P<title>.*?)</h1>\s*?'
+	r'<div class="news__info">\s*?'
+	r'<div>Datum objave:\s(?P<posted>[0-9.\s]*?)</div>\s*?'
+	r'<div class="news__item-source">(?P<d_type>.*?)</div>\s*?'
+	r'</div>\s*?<div\sclass="news__blurb">\s+'
+	r'(?P<timeplace>.*?)\n'
+)
+
+event_pattern2 = (
+	r'<li>(?P<com_member>[^<]*?)[,.]?\s?</li>'
+)
+
+data_list = []
+committees = []
+
+def parse_html(fname):
+	try:
+		with open(f'htmls/{fname}') as f:
+			h = f.read()
+		match = re.search(event_pattern, h)
+		data = match.groupdict()
+		committee = re.findall(event_pattern2, h)
+		committee = list(map(html.unescape, committee))
+		data["id"] = fname
+		data_list.append(data)
+		committees.append(committee)
+		print(data)
+		print(committee)
+		print(len(data_list), len(commitees))
+	except:
+		pass
+	
+def get_data():
+	with open('paths.txt') as f:
+		trash = f.read()
+	id_list = trash.split('\n')
+	for path in id_list:
+		match = re.search(id_pattern, path)
+		fname = match.groupdict()["id"]
+		parse_html(fname)
+	with open('data.txt', 'w') as f:
+		for item in data_list:
+			f.write(item + '\n')
+
